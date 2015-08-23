@@ -3,6 +3,16 @@ import "Constants.js" as UI
 
 Rectangle {
 
+    Image {
+        id: grid
+        anchors.fill: parent
+        source: "grid.png"
+        fillMode: Image.Tile
+        horizontalAlignment: Image.AlignLeft
+        verticalAlignment: Image.AlignTop
+        opacity: .3
+    }
+
     Item {
         id: map
         anchors.fill: parent
