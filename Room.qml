@@ -7,45 +7,110 @@ Item {
     opacity: m.pressed ? .5 : 1
 
     Rectangle {
-        anchors {fill: parent; margins: -2 }
+        id: r
+        anchors {fill: parent; margins: -UI.border / 2.0 }
         color: UI.roomColor
-        border { color: Qt.darker(UI.roomColor); width: 4 }
-    }
+        border { color: Qt.darker(UI.roomColor); width: UI.border }
 
-    MouseArea {
-        anchors.fill: parent
-        drag {
-            target: parent
-            onActiveChanged: {
-                parent.x = UI.snap(parent.x);
-                parent.y = UI.snap(parent.y);
+        Rectangle { id: hl; color: Qt.darker(UI.roomColor); visible: !m.pressed }
+
+        MouseArea {
+            id: m
+
+            property int rightEdge: root.x + root.width
+            property int bottomEdge: root.y + root.height
+
+            width: parent.width
+            height: parent.height
+            hoverEnabled: true
+            drag {
+                threshold: 0
+                onActiveChanged: {
+                    if (!drag.active) {
+                        root.x = UI.snap(root.x);
+                        root.y = UI.snap(root.y);
+                    }
+                }
             }
+
+            onContainsMouseChanged: {
+                if (!pressed)
+                    state = "";
+            }
+
+            onPositionChanged: {
+                if (!pressed) {
+                    if (mouse.x < UI.handle) {
+                        state = "left";
+                    } else if (mouse.y < UI.handle) {
+                        state = "top";
+                    } else if (mouse.x > (width - UI.handle)) {
+                        state = "right";
+                    } else if (mouse.y > (height - UI.handle)) {
+                        state = "bottom";
+                    } else {
+                        state = "";
+                    }
+                } else {
+                    switch (state) {
+                    case "left":
+                        root.width = (rightEdge - root.x);
+                        break;
+                    case "right":
+                        root.width = Math.max(UI.minimal, mouse.x);
+                        break;
+                    case "top":
+                        root.height = (bottomEdge - root.y);
+                        break;
+                    case "bottom":
+                        root.height = Math.max(UI.minimal, mouse.y);
+                        break;
+                    }
+                }
+            }
+
+            onReleased: {
+                root.width = UI.snap(root.width);
+                root.height = UI.snap(root.height);
+                if (!r.contains(mouse))
+                    state = "";
+                rightEdge = UI.snap(root.x) + root.width;
+                bottomEdge = UI.snap(root.y) + root.height;
+            }
+
+            states: [
+                State {
+                    name: ""
+                    PropertyChanges { target: hl; width: 0; height: 0; x: 0; y: 0 }
+                    PropertyChanges { target: m; drag { target: root; axis: Drag.XAndYAxis } }
+                },
+                State {
+                    name: "left"
+                    PropertyChanges { target: hl; width: UI.handle; height: r.height; x: 0; y: 0 }
+                    PropertyChanges { target: m; drag { target: root; axis: Drag.XAxis } }
+                },
+                State {
+                    name: "right"
+                    PropertyChanges { target: hl; width: UI.handle; height: r.height; x: r.width - UI.handle; y: 0 }
+                    PropertyChanges { target: m; drag.target: null }
+                },
+                State {
+                    name: "top"
+                    PropertyChanges { target: hl; width: r.width; height: UI.handle; x: 0; y: 0 }
+                    PropertyChanges { target: m; drag { target: root; axis: Drag.YAxis } }
+                },
+                State {
+                    name: "bottom"
+                    PropertyChanges { target: hl; width: r.width; height: UI.handle; x: 0; y: r.height - UI.handle }
+                    PropertyChanges { target: m; drag.target: null }
+                }
+            ]
         }
     }
 
-    Rectangle {
-        anchors { right: parent.right; bottom: parent.bottom; }
-        width: UI.handle; height: UI.handle
+    Text {
+        anchors.centerIn: parent
         color: Qt.darker(UI.roomColor)
-    }
-
-    MouseArea {
-        id: m
-        width: UI.handle; height: UI.handle
-        Component.onCompleted: {
-            x = parent.width - UI.handle;
-            y = parent.height - UI.handle;
-        }
-        onPositionChanged: {
-            var g = mapToItem(root, mouse.x, mouse.y);
-            root.width = Math.max(UI.minimal, g.x + UI.handle / 2);
-            root.height = Math.max(UI.minimal, g.y + UI.handle / 2);
-        }
-        onReleased: {
-            root.width = UI.snap(root.width);
-            root.height = UI.snap(root.height);
-            x = parent.width - UI.handle;
-            y = parent.height - UI.handle;
-        }
+        text: [root.width, root.height].join("x")
     }
 }

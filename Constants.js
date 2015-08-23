@@ -2,7 +2,8 @@
 
 var grid = 8;
 var minimal = 32;
-var handle = 16;
+var border = 4;
+var handle = 8;
 
 var roomColor = "#567";
 
