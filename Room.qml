@@ -1,10 +1,23 @@
 import QtQuick 2.4
+import QtQuick.Controls 1.3
+
 import "Constants.js" as UI
 
 Item {
     id: root
     width: UI.grid * 8; height: UI.grid * 6
     opacity: m.pressed ? .5 : 1
+    z: m.pressed ? 1 : 0
+
+    Menu {
+        id: ctx_menu
+        MenuItem {
+            text: "delete"
+            onTriggered: {
+                root.destroy();
+            }
+        }
+    }
 
     Rectangle {
         id: r
@@ -23,6 +36,8 @@ Item {
             width: parent.width
             height: parent.height
             hoverEnabled: true
+            acceptedButtons: Qt.LeftButton | Qt.RightButton
+
             drag {
                 threshold: 0
                 onActiveChanged: {
@@ -67,6 +82,12 @@ Item {
                         break;
                     }
                 }
+            }
+
+            onPressed: {
+                root.forceActiveFocus();
+                if (mouse.button === Qt.RightButton)
+                    ctx_menu.popup();
             }
 
             onReleased: {

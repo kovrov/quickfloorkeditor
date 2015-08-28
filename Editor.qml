@@ -1,7 +1,29 @@
 import QtQuick 2.4
+import QtQuick.Controls 1.3
+
 import "Constants.js" as UI
 
 Rectangle {
+    id: root
+
+    Menu {
+        id: ctx_menu
+        MenuItem {
+            text: "add"
+            onTriggered: {
+                room_component.createObject(map, { x: m.mouseX, y: m.mouseY });
+            }
+        }
+    }
+
+    MouseArea {
+        id: m
+        anchors.fill: parent
+        acceptedButtons: Qt.RightButton
+        onPressed: {
+            ctx_menu.popup();
+        }
+    }
 
     Image {
         id: grid
@@ -21,14 +43,5 @@ Rectangle {
     Component {
         id: room_component
         Room {}
-    }
-
-    MouseArea {
-        width: UI.button.width; height: UI.button.height
-        Rectangle { anchors.fill: parent }
-        Text { text: "+"; anchors.centerIn: parent }
-        onClicked: {
-            room_component.createObject(map, { x: 32, y: 32 });
-        }
     }
 }
